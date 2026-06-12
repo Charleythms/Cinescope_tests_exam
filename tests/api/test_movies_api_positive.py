@@ -33,7 +33,8 @@ class TestMoviesApiPositive:
         movie_id = response.json()["id"]
 
         authenticated_admin.movies_api.delete_movie(created_movie["id"])
-        assert authenticated_admin.movies_api.get_movie_by_id(created_movie['id'], expected_status=404).status_code == 404
+        #проверка удаления
+        get_response = authenticated_admin.movies_api.get_movie_by_id(created_movie['id'], expected_status=404)
 
     @pytest.mark.regression
     def test_get_movie_by_id(self, authenticated_admin, valid_genre_id):
