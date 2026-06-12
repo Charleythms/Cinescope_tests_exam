@@ -30,8 +30,10 @@ class TestMoviesApiPositive:
         assert created_movie["published"] == movie_data["published"]
         assert created_movie["genreId"] == movie_data["genreId"]
         assert "id" in created_movie
+        movie_id = response.json()["id"]
 
         authenticated_admin.movies_api.delete_movie(created_movie["id"])
+        authenticated_admin.movies_api.get_movie_by_id(created_movie['id'], expected_status=404)
 
     @pytest.mark.regression
     def test_get_movie_by_id(self, authenticated_admin, valid_genre_id):
@@ -51,6 +53,7 @@ class TestMoviesApiPositive:
         assert fetched_movie["genreId"] == movie_data["genreId"]
 
         authenticated_admin.movies_api.delete_movie(movie_id)
+        authenticated_admin.movies_api.get_movie_by_id(movie_id, expected_status=404)
 
     @pytest.mark.regression
     def test_update_movie(self, authenticated_admin, valid_genre_id):
@@ -58,18 +61,20 @@ class TestMoviesApiPositive:
         create_response = authenticated_admin.movies_api.create_movie(movie_data, expected_status=201)
         movie_id = create_response.json()["id"]
 
-        updated_data = DataGenerator.generate_movie_data(genre_id=valid_genre_id)
-        updated_movie = authenticated_admin.movies_api.update_movie(movie_id, updated_data, expected_status=200).json()
+        try:
+            updated_data = DataGenerator.generate_movie_data(genre_id=valid_genre_id)
+            updated_movie = authenticated_admin.movies_api.update_movie(movie_id, updated_data,  expected_status=200).json()
 
-        assert updated_movie["id"] == movie_id
-        assert updated_movie["name"] == updated_data["name"]
-        assert updated_movie["description"] == updated_data["description"]
-        assert updated_movie["price"] == updated_data["price"]
-        assert updated_movie["location"] == updated_data["location"]
-        assert updated_movie["published"] == updated_data["published"]
-        assert updated_movie["genreId"] == updated_data["genreId"]
-
-        authenticated_admin.movies_api.delete_movie(movie_id)
+            assert updated_movie["id"] == movie_id
+            assert updated_movie["name"] == updated_data["name"]
+            assert updated_movie["description"] == updated_data["description"]
+            assert updated_movie["price"] == updated_data["price"]
+            assert updated_movie["location"] == updated_data["location"]
+            assert updated_movie["published"] == updated_data["published"]
+            assert updated_movie["genreId"] == updated_data["genreId"]
+        finally:
+            authenticated_admin.movies_api.delete_movie(movie_id)
+            authenticated_admin.movies_api.get_movie_by_id(movie_id, expected_status=404)
 
     @pytest.mark.smoke
     @pytest.mark.critical
@@ -78,5 +83,5 @@ class TestMoviesApiPositive:
         create_response = authenticated_admin.movies_api.create_movie(movie_data, expected_status=201)
         movie_id = create_response.json()["id"]
 
-        assert authenticated_admin.movies_api.delete_movie(movie_id).status_code == 200
-        assert authenticated_admin.movies_api.get_movie_by_id(movie_id, expected_status=404).status_code == 404
+        authenticated_admin.movies_api.delete_movie(movie_id)
+        authenticated_admin.movies_api.get_movie_by_id(movie_id, expected_status=404)
