@@ -20,7 +20,7 @@ class TestMoviesApiPositive:
     @pytest.mark.critical
     def test_create_movie(self, authenticated_admin, valid_genre_id):
         movie_data = DataGenerator.generate_movie_data(genre_id=valid_genre_id)
-        response = authenticated_admin.movies_api.create_movie(movie_data, expected_status=201)
+        response = authenticated_admin.movies_api.create_movie(movie_data)
         created_movie = response.json()
 
         assert created_movie["name"] == movie_data["name"]

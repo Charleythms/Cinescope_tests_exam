@@ -2,7 +2,6 @@ import json
 import logging
 import os
 
-from requests import session
 
 
 class CustomRequester:

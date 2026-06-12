@@ -26,10 +26,17 @@ def authenticated_admin(api_manager):
 def valid_genre_id(authenticated_admin):
     response = authenticated_admin.genres_api.get_genres(need_logging=False)
     genres = response.json()
+    created_genre = False
 
     if not genres:
         genre_data = DataGenerator.generate_random_genre()
         genre_response = authenticated_admin.genres_api.create_genre(genre_data)
-        return genre_response.json()["id"]
+        genre_id = genre_response.json()["id"]
+        created_genre = True
+    else:
+        genre_id = genres[0]["id"]
 
-    return genres[0]["id"]
+    yield genre_id
+
+    if created_genre:
+        authenticated_admin.genres_api.delete_genre(genre_id)
