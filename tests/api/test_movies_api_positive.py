@@ -60,7 +60,6 @@ class TestMoviesApiPositive:
         movie_data = DataGenerator.generate_movie_data(genre_id=valid_genre_id)
         create_response = authenticated_admin.movies_api.create_movie(movie_data, expected_status=201)
         movie_id = create_response.json()["id"]
-        #обернул в try/finally
         try:
             updated_data = DataGenerator.generate_movie_data(genre_id=valid_genre_id)
             updated_movie = authenticated_admin.movies_api.update_movie(movie_id, updated_data,  expected_status=200).json()
