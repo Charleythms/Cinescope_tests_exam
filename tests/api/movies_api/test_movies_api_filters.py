@@ -1,4 +1,5 @@
 import pytest
+from models.base_models import MovieResponse
 
 
 class TestMoviesApiFilters:
@@ -11,13 +12,15 @@ class TestMoviesApiFilters:
             expected_status=200
         )
         data = response.json()
-        for movie in data.get("movies", []):
-            assert movie["location"] == "SPB"
+
+        for movie_data in data.get("movies", []):
+            movie = MovieResponse(**movie_data)
+            assert movie.location == "SPB"
 
     @pytest.mark.smoke
     @pytest.mark.filters
     def test_filter_by_genre(self, authenticated_admin):
-        target_genre_id = 3 #поиск по фантастике
+        target_genre_id = 3
 
         response = authenticated_admin.movies_api.get_movies(
             params={"genreId": target_genre_id, "pageSize": 20},
@@ -25,7 +28,6 @@ class TestMoviesApiFilters:
         )
         data = response.json()
 
-        for movie in data.get("movies", []):
-            assert movie["genreId"] == target_genre_id, (
-                f"Фильм {movie['id']} получил айди {movie['genreId']}, ожидалось {target_genre_id}"
-            )
+        for movie_data in data.get("movies", []):
+            movie = MovieResponse(**movie_data)
+            assert movie.genreId == target_genre_id

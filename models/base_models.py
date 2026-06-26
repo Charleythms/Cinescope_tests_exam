@@ -1,5 +1,5 @@
 from typing import Optional
-import datetime
+from datetime import datetime
 from typing import List
 from pydantic import BaseModel, Field, field_validator
 from entities.roles import Roles
@@ -32,15 +32,18 @@ class RegisterUserResponse(BaseModel):
     verified: bool
     banned: Optional[bool] = Field(default=False, description="Статус бана пользователя")
     roles: List[Roles]
-    createdAt: str = Field(description="Дата и время создания пользователя в формате ISO 8601")
+    createdAt: datetime = Field(description="Дата и время создания пользователя в формате ISO 8601")
 
-    @field_validator("createdAt")
-    @classmethod
-    def validate_created_at(cls, value: str) -> str:
+class MovieResponse(BaseModel):
 
-        try:
-            normalized = value.replace('Z', '+00:00')
-            datetime.datetime.fromisoformat(normalized)
-        except ValueError:
-            raise ValueError("Некорректный формат даты и времени. Ожидается формат ISO 8601.")
-        return value
+    id: int = Field(..., gt=0, description="идентификатор фильма")
+    name: str = Field(..., min_length=1, max_length=255, description="Название фильма")
+    price: float = Field(..., gt=0, description="Цена билета")
+    description: str = Field(..., min_length=1, description="Описание фильма")
+    imageUrl: Optional[str] = Field(None, description="URL изображения фильма")
+    location: str = Field(..., pattern=r"^(MSK|SPB)$", description="Локация (MSK или SPB)")
+    published: bool = Field(..., description="Опубликован ли фильм")
+    genreId: int = Field(..., gt=0, description="ID жанра фильма")
+    genre: dict = Field(..., description="Объект жанра с полем name")
+    createdAt: datetime = Field(..., description="Дата создания в формате ISO 8601")
+    rating: Optional[float] = Field(None, ge=0, description="Рейтинг фильма")
