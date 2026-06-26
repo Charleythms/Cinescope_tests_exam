@@ -46,4 +46,4 @@ class MovieResponse(BaseModel):
     genreId: int = Field(..., gt=0, description="ID жанра фильма")
     genre: dict = Field(..., description="Объект жанра с полем name")
     createdAt: datetime = Field(..., description="Дата создания в формате ISO 8601")
-    rating: Optional[float] = Field(None, ge=0, description="Рейтинг фильма")
+    rating: float = Field(..., ge=0, description="Рейтинг фильма (от 0 до 10)")
