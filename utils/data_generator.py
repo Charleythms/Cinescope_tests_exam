@@ -1,9 +1,13 @@
 from faker import Faker
+import random
+import string
+
 
 faker = Faker()
 
 
 class DataGenerator:
+
     @staticmethod
     def generate_random_genre():
         return {"name": faker.word().capitalize()}
@@ -21,3 +25,28 @@ class DataGenerator:
         }
         movie_data.update(kwargs)
         return movie_data
+
+    @classmethod
+    def generate_random_email(cls):
+        return faker.email()
+
+    @classmethod
+    def generate_random_name(cls):
+        name = faker.name()
+        name = ''.join(c for c in name if c.isalpha() or c == ' ')
+        return name.strip()
+
+    @staticmethod
+    def generate_random_password():
+        letters = random.choice(string.ascii_letters)
+        digits = random.choice(string.digits)
+
+        special_chars = "?@#$%^&*|:"
+        all_chars = string.ascii_letters + string.digits + special_chars
+        remaining_length = random.randint(6, 18)
+        remaining_chars = ''.join(random.choices(all_chars, k=remaining_length))
+
+        password = list(letters + digits + remaining_chars)
+        random.shuffle(password)
+
+        return "".join(password)
