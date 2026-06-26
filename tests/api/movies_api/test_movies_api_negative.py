@@ -15,12 +15,10 @@ class TestMoviesApiNegative:
         movie_data = DataGenerator.generate_movie_data(genre_id=valid_genre_id)
         movie_data["price"] = -100
 
-        response = authenticated_admin.movies_api.create_movie(movie_data, expected_status=201)
-        movie_id = response.json()["id"]
+        response = authenticated_admin.movies_api.create_movie(movie_data, expected_status=400)
+        error_data = response.json()
 
-        assert response.json()["price"] == -100
-
-        authenticated_admin.movies_api.delete_movie(movie_id, expected_status=200)
+        assert "Поле price должно быть больше 0" in error_data["message"]
 
     @pytest.mark.negative
     def test_create_movie_with_invalid_loc(self, authenticated_admin, valid_genre_id):

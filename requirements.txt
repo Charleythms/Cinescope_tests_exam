@@ -1,3 +1,6 @@
 pytest==9.0.3
 requests==2.34.2
-faker==40.22.0
+Faker==40.22.0
+pydantic==2.13.4
+python-dotenv==1.2.2
+email-validator==2.3.0
