@@ -18,7 +18,7 @@ class TestMoviesApiPositive:
             response = authenticated_admin.movies_api.get_movies(expected_status=200)
 
         with allure.step("Валидация структуры ответа"):
-            movies_response = MoviesListResponse(**response.json())
+            MoviesListResponse(**response.json())
 
     @allure.title("Создание нового фильма")
     @allure.severity(allure.severity_level.CRITICAL)
