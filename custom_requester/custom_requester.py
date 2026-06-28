@@ -1,8 +1,11 @@
 import json
 import logging
 import os
+from models.base_models import BaseModel
 
-
+GREEN = '\033[32m'
+RED = '\033[31m'
+RESET = '\033[0m'
 
 class CustomRequester:
     base_headers = {
@@ -13,36 +16,32 @@ class CustomRequester:
     def __init__(self, session, base_url):
         self.session = session
         self.base_url = base_url
-        self.headers = self.base_headers.copy()
-        self.session.headers.update(self.base_headers)
+        self.session.headers = self.base_headers.copy()
         self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.INFO)
 
-    def send_request(self, method, endpoint, data=None, params=None, expected_status=200, need_logging=True):
+    def send_request(self, method, endpoint, data = None, params = None, expected_status = 200, need_logging=True):
         url = f"{self.base_url}{endpoint}"
-        response = self.session.request(method, url, json=data, params=params)
+        if isinstance(data, BaseModel):
+            data = json.loads(data.model_dump_json(exclude_unset=True))
+        response = self.session.request(method, url, json = data, params = params, headers = self.session.headers)
 
         if need_logging:
             self.log_request_and_response(response)
 
         if response.status_code != expected_status:
-            raise ValueError(
-                f"Unexpected status code: {response.status_code}. Expected: {expected_status}"
-            )
+            raise ValueError(f"Unexpected status code: {response.status_code}. Expected: {expected_status}")
 
         return response
 
-    def _update_session_headers(self, headers: dict):
-        self.session.headers.update(headers)
+    def _update_session_headers(self, **kwargs):
+        self.session.headers.update(kwargs)
 
     def log_request_and_response(self, response):
         try:
             request = response.request
-            GREEN = '\033[32m'
-            RED = '\033[31m'
-            RESET = '\033[0m'
-
-            full_test_name = f"pytest {os.environ.get('PYTEST_CURRENT_TEST', '').replace(' (call)', '')}"
             headers = " \\\n".join([f"-H '{header}: {value}'" for header, value in request.headers.items()])
+            full_test_name = f"pytest {os.environ.get('PYTEST_CURRENT_TEST', '').replace(' (call)', '')}"
 
             body = ""
             if hasattr(request, 'body') and request.body is not None:
@@ -50,9 +49,10 @@ class CustomRequester:
                     body = request.body.decode('utf-8')
                 elif isinstance(request.body, str):
                     body = request.body
-                body = f"-d '{body}' \n" if body and body != '{}' else ''
+                body = f"-d '{body}' \n" if body != '{}' else ''
 
-            self.logger.info(f"\n{'=' * 40} REQUEST {'=' * 40}")
+            # Логируем запрос
+            self.logger.info(f"\n{'=' * 40} REQUEST {'=' *40}")
             self.logger.info(
                 f"{GREEN}{full_test_name}{RESET}\n"
                 f"curl -X {request.method} '{request.url}' \\\n"
@@ -64,15 +64,10 @@ class CustomRequester:
             is_success = response.ok
             response_data = response.text
 
-            try:
-                response_data = json.dumps(json.loads(response.text), indent=4, ensure_ascii=False)
-            except json.JSONDecodeError:
-                pass
-
             self.logger.info(f"\n{'=' * 40} RESPONSE {'=' * 40}")
             if not is_success:
                 self.logger.info(
-                    f"\tSTATUS_CODE: {RED}{response_status}{RESET}\n"
+                    f"\tSTATUS_CODE: {RED}{response_status}{RESET} \n"
                     f"\tDATA: {RED}{response_data}{RESET}"
                 )
             else:
@@ -83,10 +78,3 @@ class CustomRequester:
             self.logger.info(f"{'=' * 80}\n")
         except Exception as e:
             self.logger.error(f"\nLogging failed: {type(e)} - {e}")
-
-    def _reset_headers(self):
-        self.session.headers.clear()
-        self.session.headers.update(self.base_headers)
-        self.headers = self.base_headers.copy()
-
-        self.logger.debug(f"HEADERS сброшы до базовых значений: {self.base_headers}")
