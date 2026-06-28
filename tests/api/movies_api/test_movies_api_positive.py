@@ -1,7 +1,7 @@
 import allure
 import pytest
 
-from models.base_models import MovieResponse
+from models.base_models import MovieResponse, MoviesListResponse
 from utils.data_generator import DataGenerator
 
 
@@ -16,19 +16,9 @@ class TestMoviesApiPositive:
     def test_get_movies(self, authenticated_admin):
         with allure.step("Запрос списка фильмов"):
             response = authenticated_admin.movies_api.get_movies(expected_status=200)
-            data = response.json()
 
-        with allure.step("Проверка структуры ответа"):
-            assert "movies" in data, "В ответе отсутствует поле movies"
-            assert "count" in data, "В ответе отсутствует поле count"
-            assert "page" in data, "В ответе отсутствует поле page"
-            assert "pageSize" in data, "В ответе отсутствует поле pageSize"
-            assert "pageCount" in data, "В ответе отсутствует поле pageCount"
-
-        with allure.step("Проверка данных фильмов"):
-            for movie_data in data.get("movies", []):
-                movie = MovieResponse(**movie_data)
-                assert movie.id > 0, "ID фильма должен быть больше 0"
+        with allure.step("Валидация структуры ответа"):
+            movies_response = MoviesListResponse(**response.json())
 
     @allure.title("Создание нового фильма")
     @allure.severity(allure.severity_level.CRITICAL)

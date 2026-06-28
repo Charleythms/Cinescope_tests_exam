@@ -23,6 +23,9 @@ class DBHelper:
     def get_movie_by_name(self, name: str):
         return self.db_session.query(MovieDBModel).filter(MovieDBModel.name == name).first()
 
+    def get_movie_by_id(self, movie_id: int):
+        return self.db_session.query(MovieDBModel).filter(MovieDBModel.id == movie_id).first()
+
     def user_exists_by_email(self, email: str) -> bool:
         return self.db_session.query(UserDBModel).filter(UserDBModel.email == email).count() > 0
 

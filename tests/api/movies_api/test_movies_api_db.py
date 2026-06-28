@@ -26,9 +26,9 @@ class TestMoviesApiWithDB:
             )
 
         try:
-            with allure.step("Проверка наличия фильма в базе данных"):
-                db_movie = db_helper.get_movie_by_name(movie_data["name"])
-                assert db_movie is not None, f"Фильм с названием '{movie_data['name']}' не найден в БД"
+            with allure.step("Проверка наличия фильма в базе данных по ID"):
+                db_movie = db_helper.get_movie_by_id(movie_id)
+                assert db_movie is not None, f"Фильм с ID '{movie_id}' не найден в БД"
 
             with allure.step("Сравнение данных из API и базы данных"):
                 assert db_movie.id == movie_id, "ID фильма в БД не совпадает с API"
@@ -44,15 +44,15 @@ class TestMoviesApiWithDB:
                 super_admin.api.movies_api.delete_movie(movie_id, expected_status=200)
 
             with allure.step("Проверка отсутствия фильма в БД после удаления"):
-                db_movie_after_delete = db_helper.get_movie_by_name(movie_data["name"])
+                db_movie_after_delete = db_helper.get_movie_by_id(movie_id)
                 assert db_movie_after_delete is None, \
-                    f"Фильм с названием '{movie_data['name']}' все еще присутствует в БД после удаления"
+                    f"Фильм с ID '{movie_id}' все еще присутствует в БД после удаления"
 
             with allure.step("Проверка недоступности фильма через API"):
                 super_admin.api.movies_api.get_movie_by_id(movie_id, expected_status=404)
 
         finally:
             with allure.step("Очистка тестовых данных из базы данных"):
-                db_movie = db_helper.get_movie_by_name(movie_data["name"])
+                db_movie = db_helper.get_movie_by_id(movie_id)
                 if db_movie:
                     db_helper.cleanup_test_data([db_movie])

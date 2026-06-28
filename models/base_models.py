@@ -47,3 +47,11 @@ class MovieResponse(BaseModel):
     genre: dict = Field(..., description="Объект жанра с полем name")
     createdAt: datetime = Field(..., description="Дата создания в формате ISO 8601")
     rating: float = Field(..., ge=0, description="Рейтинг фильма (от 0 до 10)")
+
+
+class MoviesListResponse(BaseModel):
+    movies: List[MovieResponse] = Field(..., description="Список фильмов")
+    count: int = Field(..., ge=0, description="Общее количество фильмов")
+    page: int = Field(..., ge=0, description="Текущая страница")
+    pageSize: int = Field(..., ge=0, description="Размер страницы")
+    pageCount: int = Field(..., ge=0, description="Общее количество страниц")
