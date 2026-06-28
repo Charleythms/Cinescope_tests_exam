@@ -1,3 +1,4 @@
+from datetime import datetime
 from faker import Faker
 import random
 import string
@@ -50,3 +51,19 @@ class DataGenerator:
         random.shuffle(password)
 
         return "".join(password)
+
+    @staticmethod
+    def generate_user_data() -> dict:
+        from uuid import uuid4
+
+        return {
+            'id': f'{uuid4()}',
+            'email': DataGenerator.generate_random_email(),
+            'full_name': DataGenerator.generate_random_name(),
+            'password': DataGenerator.generate_random_password(),
+            'created_at': datetime.datetime.now(),
+            'updated_at': datetime.datetime.now(),
+            'verified': False,
+            'banned': False,
+            'roles': '{USER}'
+        }

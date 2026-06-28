@@ -7,8 +7,26 @@ from entities.roles import Roles
 from entities.user import User
 from models.base_models import TestUser
 from utils.data_generator import DataGenerator
+from db_requester.db_client import get_db_session
+from db_requester.db_helpers import DBHelper
 
 
+@pytest.fixture(scope="function")
+def created_test_user(db_helper):
+    user = db_helper.create_test_user(DataGenerator.generate_user_data())
+    yield user
+    if db_helper.get_user_by_id(user.id):
+        db_helper.delete_user(user)
+
+@pytest.fixture
+def db_helper(db_session):
+    return DBHelper(db_session)
+
+@pytest.fixture
+def db_session():
+    session = get_db_session()
+    yield session
+    session.close()
 # ==================== СЕССИИ И API МЕНЕДЖЕРЫ ====================
 
 @pytest.fixture(scope="session")
