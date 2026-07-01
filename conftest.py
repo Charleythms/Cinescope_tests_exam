@@ -1,15 +1,47 @@
 import requests
-import pytest
 from clients.api_manager import ApiManager
 from config.base_urls import AUTH_BASE_URL
 from config.test_data import SuperAdminCreds
 from entities.roles import Roles
 from entities.user import User
 from models.base_models import TestUser
+from utils.pw_tools import Tools
 from utils.data_generator import DataGenerator
 from db_requester.db_client import get_db_session
 from db_requester.db_helpers import DBHelper
+import pytest
+DEFAULT_UI_TIMEOUT = 30000
 
+@pytest.fixture()
+def movie_id(super_admin):
+    movie_data = DataGenerator.generate_movie_data(genre_id=3)
+    movie = super_admin.api.movies_api.create_movie(movie_data)
+    movie_id = movie.json()['id']
+    yield movie_id
+    super_admin.api.movies_api.delete_movie(movie_id)
+
+@pytest.fixture(scope="session")  # Браузер запускается один раз для всей сессии
+def browser(playwright):
+    browser = playwright.chromium.launch(headless=False)  # headless=True для CI/CD, headless=False для локальной разработки
+    yield browser  # yield возвращает значение фикстуры, выполнение теста продолжится после yield
+    browser.close()
+
+@pytest.fixture(scope="function")
+def context(browser):
+    context = browser.new_context()
+    context.tracing.start(screenshots=True, snapshots=True, sources=True)
+    context.set_default_timeout(DEFAULT_UI_TIMEOUT)
+    yield context
+    log_name = f"trace_{Tools.get_timestamp()}.zip"
+    trace_path = Tools.files_dir('playwright_trace', log_name)
+    context.tracing.stop(path=trace_path)
+    context.close()
+
+@pytest.fixture(scope="function")  # Страница создается для каждого теста
+def page(context):
+    page = context.new_page()
+    yield page  # yield возвращает значение фикстуры, выполнение теста продолжится после yield
+    page.close()
 
 @pytest.fixture(scope="function")
 def created_test_user(db_helper):
@@ -149,11 +181,12 @@ def registration_user_data():
 
 @pytest.fixture
 def registered_user():
+    password = DataGenerator.generate_random_password()
     user_data = {
-        "email": "unique_email@mail.com",
-        "fullName": "Mr Uniqueness Unique",
-        "password": "Unique_password12345",
-        "passwordRepeat": "Unique_password12345"
+        "email": DataGenerator.generate_random_email(),
+        "fullName": DataGenerator.generate_random_name(),
+        "password": password,
+        "passwordRepeat": password
     }
     requests.post(f'{AUTH_BASE_URL}/register', json=user_data)
     return {
